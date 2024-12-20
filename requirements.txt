@@ -1,0 +1,4 @@
+brainflow~=5.15.0
+numpy~=2.2.0
+sounddevice~=0.5.1
+matplotlib~=3.10.0
