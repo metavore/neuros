@@ -1,73 +1,60 @@
 from neuros.board.board_interface import BoardInterface, ChannelConfig
-from neuros.processing.simple_processing import extract_alpha_power, compute_band_ratio
+from neuros.processing.simple_processing import extract_alpha_power
+from neuros.output.audio_output import AudioOutput, AudioChannelConfig
 from brainflow.board_shim import BoardIds
-import numpy as np
 import time
-from collections import defaultdict
 
 
-def collect_channel_stats(duration_seconds: float = 60.0, window_size_ms: float = 50.0):
-    """
-    Collect statistics for all channels over the specified duration.
-    """
-    # Initialize board with all channels enabled
-    channels = [ChannelConfig(i) for i in range(8)]  # 8 channels
+def run_neurofeedback(duration_seconds: float = 60.0, window_size_ms: float = 50.0):
+    """Run the neurofeedback system with audio output."""
+
+    # Set up board
+    channels = [ChannelConfig(i) for i in range(3)]  # Just use first 3 channels for now
     board = BoardInterface(BoardIds.SYNTHETIC_BOARD, channels)
 
-    # Storage for our statistics
-    alpha_powers = defaultdict(list)
-    alpha_theta_ratios = defaultdict(list)
+    # Set up audio with harmonic frequencies
+    base_freq = 256.0  # Middle C
+    audio_configs = [
+        AudioChannelConfig(0, base_freq),  # 256 Hz
+        AudioChannelConfig(1, base_freq * 1.5),  # 384 Hz
+        AudioChannelConfig(2, base_freq * 2.0)  # 512 Hz
+    ]
+    audio = AudioOutput(audio_configs)
 
-    print(f"Starting data collection for {duration_seconds} seconds...")
+    print(f"\nStarting neurofeedback session for {duration_seconds} seconds...")
+    print("Press Ctrl+C to stop")
 
     try:
-        with board:  # Uses context manager for clean start/stop
+        with board, audio:  # Uses context managers for clean setup/teardown
             start_time = time.time()
             while (time.time() - start_time) < duration_seconds:
-                # Get data window for all channels
+                # Get latest data window
                 channel_data = board.get_data_window(int(window_size_ms))
 
-                # Process each channel
-                for channel_idx, data in channel_data.items():
-                    # Calculate alpha power
-                    power = extract_alpha_power(data, board.sampling_rate)
-                    alpha_powers[channel_idx].append(power)
+                # Process each channel and update audio
+                channel_values = {
+                    idx: extract_alpha_power(data, board.sampling_rate)
+                    for idx, data in channel_data.items()
+                }
 
-                    # Calculate alpha/theta ratio
-                    ratio = compute_band_ratio(
-                        data,
-                        board.sampling_rate,
-                        (8, 13),  # Alpha band
-                        (4, 8)  # Theta band
-                    )
-                    alpha_theta_ratios[channel_idx].append(ratio)
+                audio.update(channel_values)
 
                 # Small sleep to prevent CPU overload
                 time.sleep(0.01)
 
     except KeyboardInterrupt:
-        print("\nData collection interrupted by user")
+        print("\nSession stopped by user")
 
-    # Print statistics for each channel
-    print("\nChannel Statistics:")
-    print("-" * 50)
+    print("Session complete")
 
-    for channel_idx in sorted(alpha_powers.keys()):
-        powers = np.array(alpha_powers[channel_idx])
-        ratios = np.array(alpha_theta_ratios[channel_idx])
 
-        print(f"\nChannel {channel_idx}:")
-        print(f"  Alpha Power:")
-        print(f"    Mean: {powers.mean():.3f}")
-        print(f"    Std:  {powers.std():.3f}")
-        print(f"    Min:  {powers.min():.3f}")
-        print(f"    Max:  {powers.max():.3f}")
-        print(f"  Alpha/Theta Ratio:")
-        print(f"    Mean: {ratios.mean():.3f}")
-        print(f"    Std:  {ratios.std():.3f}")
-        print(f"    Min:  {ratios.min():.3f}")
-        print(f"    Max:  {ratios.max():.3f}")
+def run_stats_collection():
+    """Run the statistics collection (previous version)"""
+    # ... (keep the existing collect_channel_stats function and its call)
 
 
 if __name__ == "__main__":
-    collect_channel_stats(duration_seconds=60.0, window_size_ms=50.0)
+    # Choose which mode to run
+    run_neurofeedback(duration_seconds=60.0, window_size_ms=50.0)
+    # or
+    # run_stats_collection()
