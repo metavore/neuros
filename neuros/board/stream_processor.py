@@ -93,7 +93,8 @@ class StreamProcessor:
                 with _board_lock:
                     data = self.board.get_current_board_data(self.window_samples)
 
-                if data.size > 0 and self._on_data is not None:
+                # Only process if we have exactly a full window
+                if data.shape[1] == self.window_samples and self._on_data is not None:
                     try:
                         self._on_data(data)
                     except Exception as e:
