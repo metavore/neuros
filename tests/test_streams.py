@@ -107,7 +107,7 @@ def test_stream_empty_board():
         assert len(windows) > 0
 
 
-def test_channel_count():
+def test_eeg_channel_count():
     """Test that we get expected number of channels"""
     config = WindowConfig(window_ms=100.0)
 
@@ -119,7 +119,7 @@ def test_channel_count():
 
         # We get all channels from the board, not just EEG
         # Synthetic board has 16 EEG channels and 16 other channels
-        assert window.shape[0] == 32  # Total number of channels for synthetic board
+        assert window.shape[0] == 16  # Total number of eeg channels for synthetic board
 
 
 if __name__ == "__main__":
