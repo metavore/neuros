@@ -114,6 +114,44 @@ def test_data_continuity():
                     "Values should be within reasonable range"
 
 
+def test_window_params_no_common_factors():
+    """Test window generation with parameters that round to unfriendly numbers"""
+    # Given: A configuration with parameters that round down to numbers with no common factors
+    # 431ms at 250Hz = 107.75 samples -> 107 samples
+    # 167ms at 250Hz = 41.75 samples -> 41 samples
+    config = WindowConfig(window_ms=431.0, overlap_ms=167.0)
+
+    with board_stream() as board:
+        # When: Generating windows
+        generator = stream_windows(board, config)
+        window = next(generator)
+
+        # Then: Window shape should match rounded sample counts
+        sample_rate = board.get_sampling_rate(board_id=board.board_id)
+        expected_samples = int(sample_rate * config.window_ms / 1000)
+        assert expected_samples == 107, "Window size should be rounded down"
+        eeg_channels = board.get_eeg_channels(board_id=board.board_id)
+
+        assert isinstance(window, np.ndarray), "Window should be numpy array"
+        assert window.shape == (len(eeg_channels), expected_samples), \
+            f"Window shape incorrect. Expected {(len(eeg_channels), expected_samples)}, got {window.shape}"
+        assert not np.any(np.isnan(window)), "Window should not contain NaN values"
+
+        # Check for data repetition (synthetic board artifact)
+        window2 = next(generator)
+        assert not np.array_equal(window, window2), "Windows should contain different data"
+
+        # Verify overlap
+        overlap_samples = int(sample_rate * config.overlap_ms / 1000)
+        assert overlap_samples == 41, "Overlap size should be rounded down"
+        np.testing.assert_array_almost_equal(
+            window[:, -overlap_samples:],
+            window2[:, :overlap_samples],
+            decimal=5,
+            err_msg="Overlap regions should match with prime-like sample counts"
+        )
+
+
 def test_error_handling():
     """Test recovery from board interruption"""
     # Given: A running board stream
