@@ -31,19 +31,19 @@ class ToneGenerator:
     def start(self) -> None:
         """Start playing the continuous tone"""
 
-        if not self._is_playing:
-            # Code to start the tone goes here
-            pass
+        if self._is_playing:
+            return  # Already playing
 
-            self._is_playing = True
+        # Code to start the tone goes here
+        self._is_playing = True
 
     def stop(self) -> None:
         """Stop the tone"""
-        if self._is_playing:
-            # Code to stop the tone goes here
-            pass
+        if not self._is_playing:
+            return  # Already stopped
 
-            self._is_playing = False
+        # Code to stop the tone goes here
+        self._is_playing = False
 
     def set_amplitude(self, value: float) -> None:
         """Set the amplitude of the tone"""
@@ -54,11 +54,10 @@ class ToneGenerator:
         # Clip velocity to valid range
         velocity = max(0, min(127, velocity))
 
-        if velocity != self._current_velocity:
-            # Code to set the velocity goes here
-            pass
+        if velocity == self._current_velocity:
+            return  # No change in amplitude
 
-            self._current_velocity = velocity
+        self._current_velocity = velocity
 
     def cleanup(self) -> None:
         """Clean up FluidSynth resources"""
