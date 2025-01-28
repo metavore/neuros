@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from neuros.process_data import (
-    extract_band_power, extract_all_bands,
+    compute_power, extract_all_bands,
     compute_band_ratios, process_window, PowerMetrics
 )
 
@@ -19,8 +19,8 @@ def test_extract_band_power():
     signal = generate_test_signal(10.0, sampling_rate, duration)
 
     # 10 Hz should show up in alpha band (8-13 Hz)
-    alpha = extract_band_power(signal, sampling_rate, 8, 13)
-    beta = extract_band_power(signal, sampling_rate, 13, 30)
+    alpha = compute_power(signal, sampling_rate, 8, 13)
+    beta = compute_power(signal, sampling_rate, 13, 30)
 
     assert alpha > beta
 
