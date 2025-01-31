@@ -1,8 +1,7 @@
 import logging
 import time
 from brainflow.board_shim import BoardIds
-from neuros.window_stream import WindowConfig, create_board_stream, stream_windows
-from neuros.process_data import Band, compute_power
+from neuros.eeg_reader import WindowConfig, create_board_stream, stream_windows, Band, compute_power
 from neuros.tone_generator import Synth
 
 logging.basicConfig(level=logging.INFO)
