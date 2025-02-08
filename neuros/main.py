@@ -2,7 +2,7 @@ import logging
 import time
 from brainflow.board_shim import BoardIds
 from neuros.eeg_reader import WindowConfig, create_board_stream, stream_windows, Band, compute_power
-from neuros.tone_generator import Synth
+from neuros.tone_generator import ToneGenerator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -13,6 +13,8 @@ def main() -> None:
     config = WindowConfig(window_ms=550.0, overlap_ms=225.0)
     max_alpha_ratio = 0.0  # Only one channel, one ratio for MVP
     windows_to_skip = 500  # Number of windows to skip, to allow for stabilization
+    cpu_delay = 0.005  # Small delay between iterations to prevent CPU overload
+    tone = ToneGenerator()
 
     try:
         with create_board_stream(board_id=BoardIds.SYNTHETIC_BOARD) as board:
@@ -40,15 +42,18 @@ def main() -> None:
 
                 normalized_alpha_ratio = alpha_ratio / max_alpha_ratio
                 logger.info(f"Normalized alpha ratio: {normalized_alpha_ratio:.2f}")
+                tone.set_velocity(normalized_alpha_ratio)
 
                 # Small delay to prevent CPU overload
-                time.sleep(0.01)
+                time.sleep(cpu_delay)
 
     except KeyboardInterrupt:
         logger.info("\nStopped by user")
     except Exception as e:
         logger.error(f"\nError: {e}")
         raise
+    finally:
+        tone.cleanup()
 
 
 if __name__ == "__main__":
