@@ -13,7 +13,7 @@ def main() -> None:
     config = WindowConfig(window_ms=550.0, overlap_ms=225.0)
     max_alpha_ratio = 0.0  # Only one channel, one ratio for MVP
     windows_to_skip = 500  # Number of windows to skip, to allow for stabilization
-    cpu_delay = 0.01  # Small delay between iterations to prevent CPU overload
+    cpu_delay = 0.005  # Small delay between iterations to prevent CPU overload
     tone = ToneGenerator()
 
     try:

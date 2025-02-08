@@ -6,8 +6,8 @@ class ToneGenerator:
 
     def __init__(self):
         """Initialize FluidSynth with organ sound"""
-        self._soundfont_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
-        self._instrument = 19  # Organ
+        self._soundfont_path = "./Aeolus_Soundfont.sf2"
+        self._instrument = 0  # Fully Organic Sound
         self._current_note = 60  # Middle C
 
         self._is_playing = False
